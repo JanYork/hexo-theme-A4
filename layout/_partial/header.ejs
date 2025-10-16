@@ -23,13 +23,23 @@
     <div style="text-align: center;"> 
 <% } %>
         <a class="index-logo" href="<%- url_for() %>"><%= config.title %></a>
-        <div style="margin-bottom: 12px;"> 
-            <% for (name in theme.menu) { %>
-                <% if(theme.menu[name] == '/') { %>
-                    <%= name %>
-                <% } else if(theme.showInMenu.includes(name)) { %>
-                    &nbsp / &nbsp<a href="<%- url_for(theme.menu[name]) %>"><%= name %></a>
-                <% } %>
-            <% } %>
-        </div>
+        <ul class="nav" style="margin-bottom: 12px;"> 
+                        <% for (name in theme.menu) { %>
+                                <% let isCurrent = false;
+                                     if (page && page.path) {
+                                         // 首页
+                                         if (theme.menu[name] === '/' && (page.path === 'index/' || page.path === 'index.html')) {
+                                             isCurrent = true;
+                                         } else if (theme.menu[name] !== '/' && url_for(theme.menu[name]) === url_for('/' + page.path.replace(/index\.html$/, ''))) {
+                                             isCurrent = true;
+                                         }
+                                     }
+                                %>
+                                <% if(theme.menu[name] == '/') { %>
+                                        <li class="<%= isCurrent ? 'active' : '' %>"><%= name %></li>
+                                <% } else if(theme.showInMenu.includes(name)) { %>
+                                        <li class="<%= isCurrent ? 'active' : '' %>"><a href="<%- url_for(theme.menu[name]) %>"><%= name %></a></li>
+                                <% } %>
+                        <% } %>
+        </ul>
     </div>
