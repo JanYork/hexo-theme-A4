@@ -107,11 +107,156 @@
                     </svg>
                 </div>
             <% } %>
+
+            <!-- 浮动音乐播放器 -->
+            <% if(is_post() && page.music_link) { %>
+                <div id="floating-music-player" class="floating-music-player">
+                    <div class="music-player-header">
+                        <span class="music-icon">🎵</span>
+                        <span class="music-title">背景音乐</span>
+                        <span class="music-tip">这篇文章和这个音乐很配哦～</span>
+                        <button class="music-toggle-btn" onclick="toggleMusicPlayer()">−</button>
+                    </div>
+                    <div class="music-player-content" id="music-content">
+                        <% 
+                            // 处理网易云音乐链接
+                            var musicUrl = page.music_link;
+                            if (musicUrl.includes('music.163.com/song?id=')) {
+                                // 提取歌曲ID
+                                var songId = musicUrl.match(/id=(\d+)/);
+                                if (songId) {
+                                    musicUrl = 'https://music.163.com/outchain/player?type=2&id=' + songId[1] + '&auto=0&height=66';
+                                }
+                            }
+                        %>
+                        <iframe 
+                            frameborder="no" 
+                            border="0" 
+                            marginwidth="0" 
+                            marginheight="0" 
+                            width="100%" 
+                            height="86" 
+                            src="<%= musicUrl %>"
+                            allow="autoplay">
+                        </iframe>
+                    </div>
+                </div>
+            <% } %>
     </body>
 </html>
 <script src="<%= url_for('/js/emojiHandler.js') %>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         wrapEmojis('.paper');
+        initFloatingMusicPlayer();
     });
+
+    // 浮动音乐播放器功能
+    function initFloatingMusicPlayer() {
+        const player = document.getElementById('floating-music-player');
+        if (!player) return;
+
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+
+        // 拖动功能
+        player.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('music-toggle-btn')) return;
+            
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parseInt(window.getComputedStyle(player).left) || 0;
+            startTop = parseInt(window.getComputedStyle(player).top) || 0;
+            
+            player.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newLeft = startLeft + deltaX;
+            let newTop = startTop + deltaY;
+            
+            // 边界检查
+            const rect = player.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft + rect.width > windowWidth) newLeft = windowWidth - rect.width;
+            if (newTop < 0) newTop = 0;
+            if (newTop + rect.height > windowHeight) newTop = windowHeight - rect.height;
+            
+            player.style.left = newLeft + 'px';
+            player.style.top = newTop + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            player.style.cursor = 'grab';
+            
+            // 自动靠边
+            autoSnapToEdge();
+        });
+
+        // 自动靠边功能
+        function autoSnapToEdge() {
+            const rect = player.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // 判断距离哪边更近
+            const distanceToLeft = centerX;
+            const distanceToRight = windowWidth - centerX;
+            const distanceToTop = centerY;
+            const distanceToBottom = windowHeight - centerY;
+            
+            const minDistance = Math.min(distanceToLeft, distanceToRight, distanceToTop, distanceToBottom);
+            
+            if (minDistance === distanceToLeft) {
+                // 靠左
+                player.style.left = '20px';
+            } else if (minDistance === distanceToRight) {
+                // 靠右
+                player.style.left = (windowWidth - rect.width - 20) + 'px';
+            } else if (minDistance === distanceToTop) {
+                // 靠上
+                player.style.top = '20px';
+            } else {
+                // 靠下
+                player.style.top = (windowHeight - rect.height - 20) + 'px';
+            }
+        }
+
+        // 窗口大小改变时重新定位
+        window.addEventListener('resize', () => {
+            autoSnapToEdge();
+        });
+    }
+
+    // 切换播放器展开/收起
+    function toggleMusicPlayer() {
+        const content = document.getElementById('music-content');
+        const btn = document.querySelector('.music-toggle-btn');
+        const player = document.getElementById('floating-music-player');
+        
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            btn.textContent = '−';
+            player.style.height = 'auto';
+        } else {
+            content.style.display = 'none';
+            btn.textContent = '+';
+            player.style.height = '40px';
+        }
+    }
 </script>
