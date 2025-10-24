@@ -841,3 +841,85 @@ a
         display: none;
     }
 }
+
+/* APlayer 居中样式 */
+.aplayer {
+    margin: 20px auto !important;
+    text-align: center;
+    max-width: 500px;
+}
+
+.aplayer .aplayer-info {
+    text-align: left;
+}
+
+.aplayer .aplayer-list {
+    text-align: left;
+}
+
+/* 媒体查询容器样式 */
+.media-query-container {
+    display: block;
+}
+
+/* 预定义的媒体查询类 */
+@media (max-width: 767px) {
+    .mobile-only {
+        display: block !important;
+    }
+    .desktop-only,
+    .tablet-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .tablet-only {
+        display: block !important;
+    }
+    .mobile-only,
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .desktop-only {
+        display: block !important;
+    }
+    .mobile-only,
+    .tablet-only {
+        display: none !important;
+    }
+}
+
+/* 响应式工具类 */
+.responsive-hide-mobile {
+    display: block;
+}
+
+.responsive-hide-tablet {
+    display: block;
+}
+
+.responsive-hide-desktop {
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .responsive-hide-mobile {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .responsive-hide-tablet {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .responsive-hide-desktop {
+        display: none !important;
+    }
+}
