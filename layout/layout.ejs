@@ -125,26 +125,104 @@
                                 // 提取歌曲ID
                                 var songId = musicUrl.match(/id=(\d+)/);
                                 if (songId) {
-                                    musicUrl = 'https://music.163.com/outchain/player?type=2&id=' + songId[1] + '&auto=0&height=66';
+                                    // 使用hexo-tag-aplayer生成播放器
+                                    var aplayerTag = '{% meting "' + songId[1] + '" "netease" "song" "mini:true" %}';
+                                    // 这里需要渲染hexo标签，但EJS模板中无法直接使用hexo标签
+                                    // 所以我们需要用其他方式
                                 }
                             }
                         %>
-                        <iframe 
-                            frameborder="no" 
-                            border="0" 
-                            marginwidth="0" 
-                            marginheight="0" 
-                            width="100%" 
-                            height="86" 
-                            src="<%= musicUrl %>"
-                            allow="autoplay">
-                        </iframe>
+                        <div id="aplayer-container"></div>
+                        <script>
+                            // 使用APlayer直接创建播放器
+                            <% if (page.music_link && page.music_link.includes('music.163.com/song?id=')) { %>
+                                var songId = '<%= page.music_link.match(/id=(\d+)/)[1] %>';
+                                
+                                // 通过网易云音乐API获取歌曲信息
+                                fetch('https://api.injahow.cn/meting/?server=netease&type=song&id=' + songId)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data && data.length > 0) {
+                                            var song = data[0];
+                                            var ap = new APlayer({
+                                                container: document.getElementById('aplayer-container'),
+                                                mini: false,
+                                                fixed: false,
+                                                autoplay: false,
+                                                theme: '#25f277',
+                                                loop: 'all',
+                                                order: 'list',
+                                                preload: 'auto',
+                                                volume: 0.7,
+                                                mutex: true,
+                                                lrcType: 0,
+                                                listFolded: false,
+                                                listMaxHeight: '200px',
+                                                audio: [{
+                                                    name: song.name || '背景音乐',
+                                                    artist: song.artist || '未知艺术家',
+                                                    url: song.url || 'https://music.163.com/song/media/outer/url?id=' + songId + '.mp3',
+                                                    cover: song.pic || 'https://p1.music.126.net/placeholder.jpg'
+                                                }]
+                                            });
+                                        } else {
+                                            // 如果API失败，使用备用方案
+                                            var ap = new APlayer({
+                                                container: document.getElementById('aplayer-container'),
+                                                mini: false,
+                                                fixed: false,
+                                                autoplay: false,
+                                                theme: '#25f277',
+                                                loop: 'all',
+                                                order: 'list',
+                                                preload: 'auto',
+                                                volume: 0.7,
+                                                mutex: true,
+                                                lrcType: 0,
+                                                listFolded: false,
+                                                listMaxHeight: '200px',
+                                                audio: [{
+                                                    name: '背景音乐',
+                                                    artist: '网易云音乐',
+                                                    url: 'https://music.163.com/song/media/outer/url?id=' + songId + '.mp3',
+                                                    cover: 'https://p1.music.126.net/placeholder.jpg'
+                                                }]
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.log('获取音乐信息失败，使用默认信息');
+                                        // API失败时的备用方案
+                                        var ap = new APlayer({
+                                            container: document.getElementById('aplayer-container'),
+                                            mini: false,
+                                            fixed: false,
+                                            autoplay: false,
+                                            theme: '#25f277',
+                                            loop: 'all',
+                                            order: 'list',
+                                            preload: 'auto',
+                                            volume: 0.7,
+                                            mutex: true,
+                                            lrcType: 0,
+                                            listFolded: false,
+                                            listMaxHeight: '200px',
+                                            audio: [{
+                                                name: '背景音乐',
+                                                artist: '网易云音乐',
+                                                url: 'https://music.163.com/song/media/outer/url?id=' + songId + '.mp3',
+                                                cover: 'https://p1.music.126.net/placeholder.jpg'
+                                            }]
+                                        });
+                                    });
+                            <% } %>
+                        </script>
                     </div>
                 </div>
             <% } %>
     </body>
 </html>
-<script src="<%= url_for('/js/emojiHandler.js') %>"></script>
+<script src="<%= url_for('/js/emojiHandler.js') %>"></script>                 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         wrapEmojis('.paper');
