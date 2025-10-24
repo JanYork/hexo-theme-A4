@@ -121,12 +121,17 @@ a
     flex: 0 0 100%;
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* 超出不换行 */
     justify-content: flex-start;
     align-content: center;
+    overflow-x: auto; /* 超出时出现横向滚动条 */
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* iOS 惯性滚动 */
+    white-space: nowrap; /* 防止子元素换行 */
 }
 .nav li
 {
+    flex: 0 0 auto; /* 不压缩，按内容宽度排列 */
     padding: 2px 0;
     margin-right: 24px;
 }
@@ -741,6 +746,28 @@ a
 .darkmode-ignore{
     isolation:isolate;
     display: initial;
+}
+
+/* 移动端全屏铺满 */
+@media (max-width: 768px) {
+    html, body { height: 100%; }
+    body { background: #fff; }
+    .paper {
+        padding: 0;
+        min-height: 100vh;
+        background: #fff;
+    }
+    .paper-main,
+    .index-main {
+        max-width: 100%;
+        margin: 0;
+        min-height: 100vh;
+        padding: 16px;
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 /* 浮动音乐播放器样式 */
