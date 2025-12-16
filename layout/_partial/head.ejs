@@ -1,10 +1,70 @@
 <head>
+    <%
+        const siteTitle = config.title || '';
+        const subtitle = config.subtitle ? ` | ${config.subtitle}` : '';
+        const isArticle = is_post();
+        const basePageTitle = page.title ? `${page.title} | ${siteTitle}` : `${siteTitle}${subtitle}`;
+
+        const rawDescSource = page.description
+            || page.summary
+            || page.excerpt
+            || (page.content ? strip_html(page.content) : '')
+            || config.description
+            || '';
+        const rawDescription = rawDescSource.toString().replace(/\r?\n|\r/g, ' ').replace(/\s+/g, ' ').trim();
+        const finalDescription = rawDescription.length > 160 ? `${rawDescription.slice(0, 157)}…` : rawDescription;
+
+        const ensureAbsolute = (input) => {
+            if (!input) return '';
+            if (/^https?:\/\//i.test(input)) {
+                return input;
+            }
+            const base = (config.url || '').replace(/\/+$/, '');
+            return base ? `${base}${url_for(input)}` : url_for(input);
+        };
+
+        const canonicalUrl = ensureAbsolute(page.permalink || page.path || '/');
+        const coverImage = page.cover
+            || page.feature
+            || page.banner
+            || page.thumbnail
+            || (page.photos && page.photos.length ? page.photos[0] : '')
+            || theme.default_cover;
+        const shareImage = ensureAbsolute(coverImage);
+
+        const keywordSource = Array.isArray(page.keywords) ? page.keywords
+            : page.keywords ? page.keywords.split(',').map(item => item.trim()).filter(Boolean)
+            : (page.tags && page.tags.length ? page.tags.map(tag => tag.name) : (config.keywords || []));
+        const keywordsContent = Array.isArray(keywordSource) ? keywordSource.join(', ') : (keywordSource || '');
+        const language = (Array.isArray(config.language) ? config.language[0] : config.language) || 'zh-CN';
+    %>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
-    <meta name="description" content="<%= page.title %>" />
+    <meta name="description" content="<%= finalDescription || siteTitle %>" />
+    <% if (keywordsContent) { %><meta name="keywords" content="<%= keywordsContent %>" /><% } %>
     <meta name="hexo-theme-A4" content="<%= theme.version %>" />
+    <meta name="apple-mobile-web-app-title" content="<%= siteTitle %>" />
+    <% if (canonicalUrl) { %><link rel="canonical" href="<%= canonicalUrl %>" /><% } %>
+    <meta property="og:type" content="<%= isArticle ? 'article' : 'website' %>" />
+    <meta property="og:site_name" content="<%= siteTitle %>" />
+    <meta property="og:title" content="<%= page.title || siteTitle %>" />
+    <meta property="og:description" content="<%= finalDescription || siteTitle %>" />
+    <% if (canonicalUrl) { %><meta property="og:url" content="<%= canonicalUrl %>" /><% } %>
+    <% if (shareImage) { %><meta property="og:image" content="<%= shareImage %>" /><% } %>
+    <meta property="og:locale" content="<%= language %>" />
+    <meta name="twitter:card" content="<%= shareImage ? 'summary_large_image' : 'summary' %>" />
+    <meta name="twitter:title" content="<%= page.title || siteTitle %>" />
+    <meta name="twitter:description" content="<%= finalDescription || siteTitle %>" />
+    <% if (shareImage) { %><meta name="twitter:image" content="<%= shareImage %>" /><% } %>
+    <% if (isArticle && page.date) { %><meta property="article:published_time" content="<%= page.date.toISOString() %>" /><% } %>
+    <% if (isArticle && page.updated) { %><meta property="article:modified_time" content="<%= page.updated.toISOString() %>" /><% } %>
+    <% if (isArticle && page.tags) { page.tags.forEach(tag => { %><meta property="article:tag" content="<%= tag.name %>" /><% }); } %>
+    <meta itemprop="name" content="<%= page.title || siteTitle %>">
+    <meta itemprop="description" content="<%= finalDescription || siteTitle %>">
+    <% if (shareImage) { %><meta itemprop="image" content="<%= shareImage %>"><% } %>
+    <% if (shareImage) { %><meta name="image" content="<%= shareImage %>" /><% } %>
     <link rel="alternate icon" type="image/webp" href="<%- url_for(theme.favicon) %>">
-    <title><%= config.title + (config.subtitle ? ' | ' + config.subtitle : '') %></title>
+    <title><%= basePageTitle %></title>
 
     <% if(theme.cdn.enable && theme.cdn.choose != "") { %>
         <% if(theme.cdn.choose == "aliyun") { %>
