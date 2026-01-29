@@ -24,13 +24,24 @@
         };
 
         const canonicalUrl = ensureAbsolute(page.permalink || page.path || '/');
-        const coverImage = page.cover
+        const extractFirstImage = (content) => {
+            if (!content) return '';
+            const html = content.toString();
+            const srcMatch = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+            if (srcMatch && srcMatch[1]) return srcMatch[1];
+            const dataSrcMatch = html.match(/<img[^>]+data-src=["']([^"']+)["'][^>]*>/i);
+            if (dataSrcMatch && dataSrcMatch[1]) return dataSrcMatch[1];
+            const dataOriginalMatch = html.match(/<img[^>]+data-original=["']([^"']+)["'][^>]*>/i);
+            if (dataOriginalMatch && dataOriginalMatch[1]) return dataOriginalMatch[1];
+            return '';
+        };
+        const frontCover = page.cover
             || page.feature
             || page.banner
             || page.thumbnail
-            || (page.photos && page.photos.length ? page.photos[0] : '')
-            || theme.default_cover;
-        const shareImage = ensureAbsolute(coverImage);
+            || (page.photos && page.photos.length ? page.photos[0] : '');
+        const firstContentImage = extractFirstImage(page.content || '');
+        const shareImage = ensureAbsolute(frontCover || firstContentImage || theme.default_cover);
 
         const keywordSource = Array.isArray(page.keywords) ? page.keywords
             : page.keywords ? page.keywords.split(',').map(item => item.trim()).filter(Boolean)
